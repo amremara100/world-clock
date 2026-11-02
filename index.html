@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock Widget</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,8 +13,7 @@
         }
 
         body {
-            /* جعل الخلفية شفافة */
-            background: transparent; 
+            background: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,6 +22,7 @@
 
         .grid-container {
             display: grid;
+            /* هنا خليتها 4 أعمدة عشان تبقى بالعرض زي ما طلبت */
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             width: 100%;
@@ -29,9 +30,9 @@
         }
 
         .card {
-            background-color: rgba(59, 66, 82, 0.85); /* لون رمادي شفاف قليلاً */
+            background-color: rgba(59, 66, 82, 0.85);
             border-radius: 20px;
-            padding: 12px 8px;
+            padding: 10px 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -41,13 +42,13 @@
         }
 
         .card.dark {
-            background-color: rgba(46, 52, 64, 0.85); /* لون أغمق شفاف */
+            background-color: rgba(46, 52, 64, 0.85);
         }
 
         .city {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -55,20 +56,29 @@
         }
 
         .time {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 300;
             letter-spacing: 1px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .ampm-day {
-            font-size: 12px;
+            font-size: 11px;
             color: #b0b8c8;
+        }
+
+        /* لو الشاشة صغيرة جداً (موبايل ضيق) يرجع لعمودين */
+        @media (max-width: 400px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="grid-container" id="clock-grid"></div>
+
     <script>
         const cities = [
             { name: "Zürich", tz: "Europe/Zurich", dark: false },
@@ -101,11 +111,14 @@
         }
 
         function updateTime() {
+            const now = new Date(); // بنجيب وقت الموبايل الحالي
             cities.forEach(city => {
                 const timeElement = document.getElementById(`time-${city.name.replace(/\s/g, '')}`);
                 const dayElement = document.getElementById(`day-${city.name.replace(/\s/g, '')}`);
-                const timeString = new Date().toLocaleTimeString('en-US', { timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true });
-                const dayString = new Date().toLocaleDateString('en-US', { timeZone: city.tz, weekday: 'short' });
+                
+                const timeString = now.toLocaleTimeString('en-US', { timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true });
+                const dayString = now.toLocaleDateString('en-US', { timeZone: city.tz, weekday: 'short' });
+                
                 const [time, ampm] = timeString.split(' ');
                 timeElement.textContent = time;
                 dayElement.textContent = `${ampm} / ${dayString}`;
@@ -114,7 +127,16 @@
 
         createClocks();
         updateTime();
-        setInterval(updateTime, 60000); 
+        
+        // التحديث كل 10 ثواني بدل الدقيقة (عشان نضمن دقة التوقيت)
+        setInterval(updateTime, 10000); 
+
+        // السر هنا: تحديث الساعة "فوراً" بمجرد ما تفتح الشاشة أو تبص على الودجت
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                updateTime();
+            }
+        });
     </script>
 </body>
 </html>
