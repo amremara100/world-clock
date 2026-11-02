@@ -36,31 +36,35 @@
         });
 
         function updateTime() {
-            const now = new Date();
+            const now = new Date(); // بيجيب وقت الموبايل الحالي فوراً
             cities.forEach(city => {
                 const timeElement = document.getElementById(`time-${city.name.replace(/\s/g, '')}`);
                 const dayElement = document.getElementById(`day-${city.name.replace(/\s/g, '')}`);
+                
+                // استخدام الدوال دي بيجبر المتصفح يقرأ الوقت الحالي مهما كان مجمد
                 const timeString = now.toLocaleTimeString('en-US', { timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true });
                 const dayString = now.toLocaleDateString('en-US', { timeZone: city.tz, weekday: 'short' });
+                
                 const [time, ampm] = timeString.split(' ');
                 timeElement.textContent = time;
                 dayElement.textContent = `${ampm} / ${dayString}`;
             });
-            // إعادة جدولة التحديث بدقة مع بداية الدقيقة القادمة
-            scheduleNextUpdate();
         }
 
-        function scheduleNextUpdate() {
-            const now = new Date();
-            // حساب الوقت المتبقي للدقيقة القادمة
-            const msToNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-            setTimeout(updateTime, msToNextMinute);
-        }
+        // 1. تحديث كل ثانية (ده اللي بيخليها تظبط فوراً لما الشاشة تولع)
+        setInterval(updateTime, 1000);
 
-        // التحديث الفوري لما الشاشة تولع أو الودجت يبان
+        // 2. محاولة إجبار النظام على التحديث لما الشاشة تولع
         window.addEventListener('focus', updateTime);
-        document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") updateTime(); });
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                updateTime();
+            }
+        });
         
+        // 3. التحديث عند لمس الشاشة أو تحريك الموبايل
+        document.addEventListener('touchstart', updateTime);
+
         updateTime(); // التشغيل الأول
     </script>
 </body>
